@@ -8,6 +8,18 @@
 import UIKit
 
 class ViewController: UIViewController, UIViewControllerRestoration {
+    let moveForwardButton: UIButton = {
+        var configuration = UIButton.Configuration.filled()
+        configuration.title = "Move"
+        configuration.buttonSize = .large
+        
+        let button = UIButton(configuration: configuration)
+        button.addTarget(self, action: #selector(moveForwardButtonTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        return button
+    }()
+    
     var label: UILabel!
     var count: Int = 0
     var timer: Timer?
@@ -44,9 +56,13 @@ class ViewController: UIViewController, UIViewControllerRestoration {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "\(count)"
         view.addSubview(label)
+        view.addSubview(moveForwardButton)
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            moveForwardButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            moveForwardButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -40)
         ])
     }
 
@@ -87,6 +103,14 @@ class ViewController: UIViewController, UIViewControllerRestoration {
 
         count = coder.decodeInteger(forKey: "Count")
         label.text = "\(count)"
+    }
+    
+    // MARK: Selectors
+    
+    @objc func moveForwardButtonTapped() {
+        let viewToShow = ChildViewController()
+        
+        navigationController?.pushViewController(viewToShow, animated: true)
     }
 }
 
