@@ -77,6 +77,19 @@ class ViewController: UIViewController, UIViewControllerRestoration {
         })
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        //Restoration and present child view controller
+        if let activityUserInfo = view.window?.windowScene?.userActivity?.userInfo {
+            if activityUserInfo[SceneDelegate.presentedChildViewKey] != nil {
+                // Restore the child view controller
+                
+                let childViewController = ChildViewController()
+                
+                navigationController?.pushViewController(childViewController, animated: false)
+            }
+        }
+    }
+    
     override func viewDidDisappear(_ animated: Bool) {
         print("ViewController viewDidDisappear")
 
@@ -84,29 +97,9 @@ class ViewController: UIViewController, UIViewControllerRestoration {
 
         timer?.invalidate()
         timer = nil
-        
-//        continuationActivity
-    }
-
-    override func encodeRestorableState(with coder: NSCoder) {
-        print("ViewController encodeRestorableState")
-
-        super.encodeRestorableState(with: coder)
-
-        coder.encode(count, forKey: "Count")
-    }
-
-    override func decodeRestorableState(with coder: NSCoder) {
-        print("ViewController decodeRestorableState")
-
-        super.decodeRestorableState(with: coder)
-
-        count = coder.decodeInteger(forKey: "Count")
-        label.text = "\(count)"
     }
     
     // MARK: Selectors
-    
     @objc func moveForwardButtonTapped() {
         let viewToShow = ChildViewController()
         
@@ -114,19 +107,3 @@ class ViewController: UIViewController, UIViewControllerRestoration {
     }
 }
 
-extension ViewController{
-    func store(in activity: NSUserActivity) {
-        activity.addUserInfoEntries(from: ["Count": self.count])
-    }
-    var continuationActivity: NSUserActivity {
-        let activity = NSUserActivity(activityType: "restoration")
-        activity.persistentIdentifier = UUID().uuidString
-        activity.addUserInfoEntries(from: ["Count":self.count])
-        return activity
-    }
-
-    func continueFrom(activity: NSUserActivity) {
-        let count = activity.userInfo?["Count"] as? Int ?? 10
-        self.count = count
-    }
-}

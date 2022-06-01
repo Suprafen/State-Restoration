@@ -16,31 +16,49 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let winScene = (scene as? UIWindowScene) else { return }
 
         // Got some of this from WWDC2109 video 258
-        window = UIWindow(windowScene: winScene)
 
-        let vc = ViewController()
+        print("User activities from connection options: ",connectionOptions.userActivities.first?.userInfo)
+        print("Session.stateRestorationActivity: \(session.stateRestorationActivity?.userInfo)")
+        
+        // userActivities == nil ????
+        guard let userActivity = connectionOptions.userActivities.first ??  session.stateRestorationActivity else {
+            window = UIWindow(windowScene: winScene)
+            let vc = ViewController()
+            let nc = UINavigationController(rootViewController: vc)
+            window?.makeKeyAndVisible()
 
-        if let activity = connectionOptions.userActivities.first ?? session.stateRestorationActivity {
-            vc.continueFrom(activity: activity)
+            self.window?.rootViewController = nc
+            
+            return
         }
+        
+        window = UIWindow(windowScene: winScene)
+        if configure(window: window, session: session, with: userActivity) {
+            scene.userActivity = userActivity
+            // assume we finished with this
+        }
+    }
 
+    func configure(window: UIWindow?, session: UISceneSession, with activity: NSUserActivity) -> Bool {
+        var succeeded = false
+        
+        
+        let vc = ViewController()
         let nc = UINavigationController(rootViewController: vc)
-        nc.restorationIdentifier = "RootNC"
+        window?.makeKeyAndVisible()
 
         self.window?.rootViewController = nc
-        window?.makeKeyAndVisible()
-    }
-
-    func stateRestorationActivity(for scene: UIScene) -> NSUserActivity? {
-        print("SceneDelegate stateRestorationActivity")
-
-        if let nc = self.window?.rootViewController as? UINavigationController, let vc = nc.viewControllers.first as? ViewController {
-            return vc.continuationActivity
-        } else {
-            return nil
+        
+        let childViewController = ChildViewController()
+        if let userInfo = activity.userInfo {
+            if let navigationController = window?.rootViewController as? UINavigationController {
+                navigationController.pushViewController(childViewController, animated: false)
+            }
+            succeeded = true
         }
+            
+        return succeeded
     }
-
     
     func scene(_ scene: UIScene, didUpdate userActivity: NSUserActivity) {
         print("SceneDelegate didUpdate")
@@ -76,3 +94,27 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+// MARK: State restoration
+
+extension SceneDelegate {
+    // Activity type for restoring this scene (loaded from the plist).
+    static let MainSceneActivityType = { () -> String in
+        // Load the activity type from the Info.plist.
+        let activityTypes = Bundle.main.infoDictionary?["NSUserActivityTypes"] as? [String]
+        print("MAIN SCENE ACTIVITY TYPE - \(activityTypes![0])")
+        return activityTypes![0]
+    }
+    
+    static let presentedChildViewKey = "presentedChildViewKey"
+    
+    func stateRestorationActivity(for scene: UIScene) -> NSUserActivity? {
+        // Offer the user activity for this scene.
+        print("func stateRestorationActivity")
+        print(scene.userActivity?.userInfo)
+        if  let rootViewController = window?.rootViewController as? UINavigationController,
+            let childViewController = rootViewController.topViewController as? ChildViewController {
+                childViewController.updateUserActivity()
+        }
+        return scene.userActivity
+    }
+}
