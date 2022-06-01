@@ -15,10 +15,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         guard let winScene = (scene as? UIWindowScene) else { return }
 
-        // Got some of this from WWDC2109 video 258
-
-        print("User activities from connection options: ",connectionOptions.userActivities.first?.userInfo)
-        print("Session.stateRestorationActivity: \(session.stateRestorationActivity?.userInfo)")
         
         // userActivities == nil ????
         guard let userActivity = connectionOptions.userActivities.first ??  session.stateRestorationActivity else {
@@ -52,6 +48,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let childViewController = ChildViewController()
         if let userInfo = activity.userInfo {
             if let navigationController = window?.rootViewController as? UINavigationController {
+            /**
+                 Use userInfo for recreating UI. Depends on value that's stored in userInfo you can
+                 call different viewControllers or tabs in TabBarController
+            */
                 navigationController.pushViewController(childViewController, animated: false)
             }
             succeeded = true
@@ -91,30 +91,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func sceneDidEnterBackground(_ scene: UIScene) {
         print("SceneDelegate sceneDidEnterBackground")
-    }
-}
-
-// MARK: State restoration
-
-extension SceneDelegate {
-    // Activity type for restoring this scene (loaded from the plist).
-    static let MainSceneActivityType = { () -> String in
-        // Load the activity type from the Info.plist.
-        let activityTypes = Bundle.main.infoDictionary?["NSUserActivityTypes"] as? [String]
-        print("MAIN SCENE ACTIVITY TYPE - \(activityTypes![0])")
-        return activityTypes![0]
-    }
-    
-    static let presentedChildViewKey = "presentedChildViewKey"
-    
-    func stateRestorationActivity(for scene: UIScene) -> NSUserActivity? {
-        // Offer the user activity for this scene.
-        print("func stateRestorationActivity")
-        print(scene.userActivity?.userInfo)
-        if  let rootViewController = window?.rootViewController as? UINavigationController,
-            let childViewController = rootViewController.topViewController as? ChildViewController {
-                childViewController.updateUserActivity()
-        }
-        return scene.userActivity
     }
 }

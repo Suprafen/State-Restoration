@@ -40,7 +40,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         print("AppDelegate configurationForConnecting")
 
-        var sceneConfig = connectingSceneSession.configuration
+        let sceneConfig = connectingSceneSession.configuration
         return sceneConfig
     }
 
